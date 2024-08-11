@@ -14,7 +14,6 @@ use tokio::time::{sleep, Duration};
 #[tokio::main]
 async fn main() {
     let log = get_logger();
-
     // Define cluster configuration
     let cluster_nodes = vec![1, 2, 3, 4, 5];
     let peers = vec![
@@ -24,14 +23,15 @@ async fn main() {
         NodeMeta::from((4, SocketAddr::from_str("127.0.0.1:5004").unwrap())),
         NodeMeta::from((5, SocketAddr::from_str("127.0.0.1:5005").unwrap())),
     ];
-    let cluster_config = ClusterConfig::new(peers);
+    let cluster_config = ClusterConfig::new(peers.clone());
 
     // Create server configs
-    let configs: Vec<_> = cluster_nodes
+    let configs: Vec<_> = peers
+        .clone()
         .iter()
-        .map(|&id| ServerConfig {
+        .map(|nm| ServerConfig {
             election_timeout: Duration::from_millis(200),
-            address: SocketAddr::from_str(format!("127.0.0.1:{}", 5000 + id).as_str()).unwrap(),
+            address: nm.address,
             default_leader: Some(1),
             leadership_preferences: HashMap::new(),
             storage_location: Some("logs/".to_string()),
